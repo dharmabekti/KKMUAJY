@@ -1,0 +1,111 @@
+@extends('layouts.master')
+
+@section('content')
+<!-- page content -->
+<div class="right_col" role="main">
+  <div class="">
+    <div class="page-title">
+      <div class="title_left">
+        <h3>DAFTAR PESERTA PKM <small></small></h3>
+      </div>
+
+      <div class="title_right">
+        {!! Form::open(['method'=>'GET','url'=>'/peserta-pkm/search'])  !!}
+        <div class="col-md-7 col-sm-7 col-xs-12 form-group pull-right top_search">
+          <div class="input-group">
+            Tahun Pengajuan:
+            <select id="middle-name" name="tahun_pengajuan" placeholder="Tahun Pengajuan" class="form-control col-md-7 col-xs-12" onChange="this.form.submit()">
+              @foreach ($tahun as $data)
+                 <option value="{{ $data->tahun_pengajuan }}" <?php if($data->tahun_pengajuan == $filter) echo "selected"; ?>>{{ $data->tahun_pengajuan }}</option>
+              @endforeach
+            </select>
+          </div>
+          <div class="input-group">
+            <input type="text" name="search" class="form-control" placeholder="Pencarian...">
+            <span class="input-group-btn">
+              <button class="btn btn-default" type="submit">Cari</button>
+              <a href="{{ route('peserta.index') }}" class="btn btn-warning btn-xs"><i class="fa fa-refresh"></i> Refresh</a>
+            </span>
+          </div>
+        </div>
+        {!! Form::close() !!}
+      </div>
+    </div>
+
+    <div class="clearfix"></div>
+      <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+          <div class="x_panel">
+            <div class="x_title">
+              <ul class="nav navbar-right">
+                <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
+              </ul>
+              <div class="clearfix">Jumlah Tim Pengusul: <b>{{ $count }} </b> Tim.</div>
+            </div>
+            <div class="x_content">
+          @if($proposal->count())
+              <table id="datatable" class="table table-striped table-bordered">
+                <thead>
+                  <tr>
+                    <?php $no=1; ?>
+                    <td align="center"><b>No.</b></td>
+                    <td align="center"><b>Bidang</b></td>
+                    <td align="center"><b>Pengusul</b></td>
+                    <td align="center"><b>Judul</b></td>
+                    <td align="center"><b>Review</b></td>
+                    <td align="center"><b>Kontrol</b></td>
+                  </tr>
+                </thead>
+                @foreach($proposal as $data)
+                    <tr>
+                      <td align="center" width="30px"> {{$no++}} </td>
+                      <td width="70px">{{ $data->bidangpkm['singkatan'] }}</td>
+                      <td width="300px"><b>Ketua: {{ $data->pengusul['first_name'] }} {{ $data->pengusul['last_name'] }} ({{ $data->pengusul['npm'] }})</b><br>
+                        Anggota:<br><?php $no2=1; ?>
+                        @foreach( $anggota as $dtanggota)
+                          @if($dtanggota->pengusul['id']==$data->pengusul['id'])
+                            {{$no2++}}. {{ $dtanggota->fullname }}<br>
+                          @endif
+                        @endforeach
+                      </td>
+                      <td width="550px"> {{ $data->judul_pkm }} </td>
+                      <td align="center">
+                        @if($data->review_formating == 1)
+                          <small>- Format</small><br>
+                        @endif
+                        @if($data->review_isi == 1)
+                          <small>- Isi</small><br>
+                        @endif
+                        @if($data->review_formating != 1 && $data->review_isi != 1)
+                          <small>Belum</small><br>
+                        @endif
+                      </td>
+                      <td align="center">
+                        <form method="POST" action="{{ route('peserta.destroy', $data->id) }}" accept-charset="UTF-8">
+                          <input name="_method" type="hidden" value="DELETE">
+                          <input name="_token" type="hidden" value="{{ csrf_token() }}">
+                            <a href="{{ route('peserta.show', $data->id) }}" class="btn btn-default btn-xs"><i class="fa fa-info-circle"></i> Detail</a>
+                            <a target="_blank" href="{{ route('pengusul.read', $data->id) }}" class="btn btn-success btn-xs"><i class="fa fa-eye"></i> Berkas</a>
+                            <a href="{{ route('peserta.setting', $data->id) }}" class="btn btn-primary btn-xs"><i class="fa fa-gear"></i> Setting</a>
+                            <input type="submit" class="btn btn-warning btn-xs" onclick="return confirm('Apakah Yakin Ingin Menghapus Data?');" value="Hapus">
+                        </form>
+                      </td>
+                    </tr>
+                @endforeach
+              </table>
+            </div>
+            <!-- PAGINATION -->
+           {!! $proposal->links() !!}
+          @else
+              <div class="alert">
+                  <i class="fa fa-exclamation-triangle"></i> Data Tidak Tersedia...
+              </div>
+          @endif
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /page content -->
+@stop
